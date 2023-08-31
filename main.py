@@ -34,22 +34,68 @@ RESULT_FONT = (FONT_NAME, 70, "bold")
 # FRENCH_FLASH_CARD = ""
 
 # csv_data = pandas.read_csv("data/french_words.csv")
+
 data_dicts = {}
+
 current_card = {}
 current_title_color = ""
 current_phrase_color = ""
 #-------------------------- Resume game or not ----------------------------------------#
+def load_data(file_path):
+    return pandas.read_csv(file_path)
+
 def resume_checkbox():
-
+    # My code: have "reloading data_dicts" when resuming:
     global data_dicts
-    result = messagebox.askyesno(title="Hi there! ", message="Do you want to resume game? ")
+    resume_game = messagebox.askyesno(title="Hi there! ", message="Do you want to resume game? ")
 
-    if result:
-        current_data = pandas.read_csv("data/current_french_words.csv")
-        data_dicts = current_data.to_dict(orient="records")
+    if resume_game:
+        try:
+            current_data = load_data("data/current_french_words.csv")
+            data_dicts = current_data.to_dict(orient="records")
+            # print(len(data_dicts))
+        except pandas.errors.EmptyDataError:
+            messagebox.showinfo(title="Good Job!", message="You have overcome all phrases. "
+                                                           "Let's renew game!")
+            default_data = load_data("data/french_words.csv")
+            data_dicts = default_data.to_dict(orient="records")
+
     else:
-        default_data = pandas.read_csv("data/french_words.csv")
+        default_data = load_data("data/french_words.csv")
         data_dicts = default_data.to_dict(orient="records")
+
+# # GPT:
+# # import pandas as pd
+# #
+# # Global variable to hold data_dicts
+# data_dicts = []
+#
+# # Function to load data from a CSV file and convert it to a list of dictionaries
+# def load_data(file_path):
+#     try:
+#         data = pd.read_csv(file_path)
+#         return data.to_dict(orient="records")
+#     except pd.errors.EmptyDataError:
+#         # Handle empty data scenario
+#         return []
+#     except Exception as e:
+#         # Handle other exceptions
+#         print("Error:", e)
+#         return []
+#
+# # Initial loading of data during setup
+# data_dicts = load_data("data/french_words.csv")
+#
+# # Function to resume game
+# def resume_game():
+#     global data_dicts
+#     result = messagebox.askyesno(title="Hi there!", message="Do you want to resume the game?")
+#
+#     if result:
+#         if not data_dicts:
+#             data_dicts = load_data("data/current_french_words.csv")
+#     else:
+#         data_dicts = load_data("data/french_words.csv")
 
 
 #-------------------------- DATA USE from -------------------------------------------------#
@@ -69,7 +115,6 @@ def flash_card_generator():
     window.after_cancel(flip_timer)
     current_card = random.choice(data_dicts)
     card_french = current_card["French"]
-
 
     current_title_color = LIGHTBLUE3
     current_phrase_color = BROWN4
@@ -103,7 +148,6 @@ def flash_card_generator():
 def flip_cards():
 
     global current_phrase_color, current_title_color
-
     current_title_color = LAVENDERBLUSH2
     current_phrase_color = EGGSHELL
     canvas.itemconfig(card_background, image=flip_image)
@@ -150,6 +194,7 @@ def known_words():
 # ------------------------- UI Set Up -----------------------------------------------------------#
 
 resume_checkbox()
+# resume_game()
 
 window = Tk()
 window.title("Flash Card")
